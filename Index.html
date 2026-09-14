@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guía Turístico Inmersivo - Chignahuapan</title>
+    
+    <!-- Componentes oficiales de Google para Realidad Aumentada Nativa de Suelo -->
+    <script type="module" src="https://googleapis.com"></script>
+
+    <style>
+        :root {
+            --primary: #85142B; /* Color institucional/mágico */
+            --dark: #1A1A1A;
+        }
+        body {
+            margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--dark); color: white; overflow: hidden; height: 100vh;
+        }
+        /* Contenedor del Visor AR */
+        model-viewer {
+            width: 100%; height: 100vh; background-color: var(--dark);
+        }
+        /* Interfaz de Usuario Impecable (Flipped Card Estilo Premium) */
+        .ui-container {
+            position: absolute; bottom: 30px; left: 5%; width: 90%; max-width: 500px;
+            background: rgba(26, 26, 26, 0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px;
+            padding: 20px; box-sizing: border-box; z-index: 999;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            transform: translateY(0); transition: all 0.3s ease;
+        }
+        .ui-title {
+            font-size: 14px; font-weight: 700; text-transform: uppercase; 
+            letter-spacing: 1.5px; color: var(--primary); margin-bottom: 8px;
+        }
+        .ui-text {
+            font-size: 16px; line-height: 1.5; color: #E0E0E0; margin: 0;
+        }
+        /* Botón de activación nativo de Google */
+        .ar-button {
+            background-color: var(--primary); color: white; border: none;
+            border-radius: 30px; padding: 12px 24px; font-weight: 600;
+            position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
+            z-index: 999; box-shadow: 0 4px 15px rgba(133, 20, 43, 0.4);
+            cursor: pointer; display: flex; align-items: center; gap: 8px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Botón elegante para iniciar la experiencia en el entorno real -->
+    <button class="ar-button" id="ar-trigger" onclick="triggerAR()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l-7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg>
+        VER ANFITRIÓN EN TU ESPACIO
+    </button>
+
+    <!-- Visor de Realidad Aumentada de Google (Suelo) -->
+    <!-- src: Aquí se coloca el archivo .glb del personaje en 3D (ej: un ajolote o guía) -->
+    <model-viewer id="visor-ar" 
+                  src="https://modelviewer.dev" 
+                  ar ar-modes="webxr scene-viewer quick-look" 
+                  camera-controls touch-action="none" 
+                  alt="Anfitrión Digital Chignahuapan"
+                  shadow-intensity="1" autocenter>
+    </model-viewer>
+
+    <!-- Tarjeta de Diálogo Turístico -->
+    <div class="ui-container">
+        <div class="ui-title" id="sitio-titulo">Cargando ubicación...</div>
+        <p class="ui-text" id="narrativa-texto">Iniciando sistemas de navegación...</p>
+    </div>
+
+    <script>
+        // 1. Detectar la locación actual mediante los parámetros limpios de la URL (?sitio=kiosco)
+        const urlParams = new URLSearchParams(window.location.search);
+        const sitioActual = urlParams.get('sitio') || 'kiosco'; 
+        
+        const elementoTitulo = document.getElementById('sitio-titulo');
+        const elementoTexto = document.getElementById('narrativa-texto');
+        const visor = document.getElementById('visor-ar');
+
+        // 2. Ejecutar la lógica de memoria e inyectar las narrativas profesionales
+        document.addEventListener("DOMContentLoaded", () => {
+            
+            if (sitioActual === 'kiosco') {
+                elementoTitulo.innerText = "Kiosco Mudéjar de Chignahuapan";
+                
+                // Verificar si ya regresó a este punto específico
+                if (localStorage.getItem('visito_kiosco')) {
+                    elementoTexto.innerHTML = "<strong>Anfitrión:</strong> ¡Qué gusto verte de nuevo aquí en el kiosco! ¿Sabías que la Fuente que está justo debajo almacena agua termal pura de nuestros manantiales? Ideal para otra fotografía.";
+                } else {
+                    elementoTexto.innerHTML = "<strong>Anfitrión:</strong> Te doy la más cordial bienvenida al corazón de nuestro Pueblo Mágico. Frente a ti tienes una joya artesanal única en México, construida en madera fina en el siglo XX y sin un solo clavo metálico.";
+                    // Guardar registro de visita en el teléfono
+                    localStorage.setItem('visito_kiosco', 'true');
+                }
+                
+            } else if (sitioActual === 'capulina') {
+                elementoTitulo.innerText = "Estatua de Capulina";
+
+                // Lógica de memoria cruzada (Reconoce si el usuario ya pasó por el Kiosco)
+                if (localStorage.getItem('visito_kiosco')) {
+                    elementoTexto.innerHTML = "<strong>Anfitrión:</strong> ¡Hola! Qué excelente ritmo llevas, veo que vienes directo desde el Kiosco Mudéjar. Aquí nos encontramos junto al gran Gaspar Henaine 'Capulina', el rey del humor blanco e hijo predilecto de esta tierra. Cuando era niño, su lugar favorito para jugar era precisamente la plaza de donde vienes.";
+                } else {
+                    elementoTexto.innerHTML = "<strong>Anfitrión:</strong> ¡Bienvenido! Estás ante el monumento en honor al gran Gaspar Henaine 'Capulina', una leyenda del cine nacional nacida con orgullo en Chignahuapan. Tómate un momento para capturar una foto junto a él.";
+                }
+                localStorage.setItem('visito_capulina', 'true');
+            }
+        });
+
+        // Forzar la activación del sistema AR nativo del teléfono móvil
+        function triggerAR() {
+            visor.activateAR();
+        }
+    </script>
+</body>
+  </html>
+  
