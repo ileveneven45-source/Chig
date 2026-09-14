@@ -5,23 +5,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Guía Turístico Inmersivo - Chignahuapan</title>
     
-    <!-- Librería oficial de Google para Realidad Aumentada de Suelo sin marcadores -->
+    <!-- Librería oficial de Google para Realidad Aumentada y Visores 3D -->
     <script type="module" src="https://googleapis.com"></script>
 
     <style>
         :root {
-            --primary: #85142B; /* Color guinda institucional de Pueblo Mágico */
+            --primary: #85142B; /* Guinda Pueblo Mágico */
             --dark: #1A1A1A;
         }
         body {
             margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
-            background-color: var(--dark); color: white; overflow: hidden; height: 100vh;
+            background: linear-gradient(180deg, #121212 0%, #1A1A1A 100%); 
+            color: white; overflow: hidden; height: 100vh;
         }
-        /* Contenedor del Visor de Realidad Aumentada */
+        /* El visor ahora ocupa toda la pantalla y permite mover al personaje en 3D con el dedo */
         model-viewer {
-            width: 100%; height: 100vh; background-color: var(--dark);
+            width: 100%; height: 100vh; background-color: transparent;
         }
-        /* Interfaz Móvil Premium (Tarjeta con desenfoque de fondo) */
+        /* Tarjeta de Diálogo Premium inferior */
         .ui-container {
             position: absolute; bottom: 30px; left: 5%; width: 90%; max-width: 500px;
             background: rgba(26, 26, 26, 0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
@@ -36,80 +37,56 @@
         .ui-text {
             font-size: 16px; line-height: 1.5; color: #E0E0E0; margin: 0;
         }
-        /* Botón flotante para activar la cámara en el piso */
-        .ar-button {
-            background-color: var(--primary); color: white; border: none;
-            border-radius: 30px; padding: 12px 24px; font-weight: 600;
-            position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
-            z-index: 999; box-shadow: 0 4px 15px rgba(133, 20, 43, 0.4);
-            cursor: pointer; display: flex; align-items: center; gap: 8px;
-        }
     </style>
 </head>
 <body>
 
-    <!-- Botón para iniciar la experiencia en el entorno real -->
-    <button class="ar-button" id="ar-trigger" onclick="triggerAR()">
-        VER ANFITRIÓN EN TU ESPACIO
-    </button>
-
-    <!-- Visor WebAR (Coloca al personaje en el suelo real del turista) -->
-    <!-- El campo 'src' tiene un astronauta de prueba de Google; luego podrás cambiarlo por tu avatar personalizado (.glb) -->
+    <!-- Visor Web 3D/AR Autónomo (Google gestionará el botón nativo automáticamente) -->
     <model-viewer id="visor-ar" 
                   src="https://modelviewer.dev" 
                   ar ar-modes="scene-viewer webxr quick-look" 
-                  camera-controls touch-action="none" 
+                  camera-controls touch-action="pan-y" 
+                  autoplay auto-rotate
                   alt="Anfitrión Digital Chignahuapan"
                   shadow-intensity="1" autocenter>
     </model-viewer>
 
-    <!-- Tarjeta de Diálogo de la Guía Turística -->
+    <!-- Tarjeta de Diálogo de la Guía Turística con Memoria -->
     <div class="ui-container">
-        <div class="ui-title" id="sitio-titulo">Cargando ubicación...</div>
-        <p class="ui-text" id="narrativa-texto">Iniciando sistemas de navegación móvil...</p>
+        <div class="ui-title" id="sitio-titulo">Cargando Chignahuapan...</div>
+        <p class="ui-text" id="narrativa-texto">Iniciando narrativa de viaje...</p>
     </div>
 
     <script>
-        // 1. Detectar el parámetro de la URL para saber qué QR se escaneó (?sitio=kiosco o ?sitio=capulina)
+        // Detectar el parámetro del punto turístico (?sitio=kiosco o ?sitio=capulina)
         const urlParams = new URLSearchParams(window.location.search);
         const sitioActual = urlParams.get('sitio') || 'kiosco'; 
         
         const elementoTitulo = document.getElementById('sitio-titulo');
         const elementoTexto = document.getElementById('narrativa-texto');
-        const visor = document.getElementById('visor-ar');
 
-        // 2. Cerebro de Memoria Inteligente (localStorage)
         document.addEventListener("DOMContentLoaded", () => {
-            
             if (sitioActual === 'kiosco') {
                 elementoTitulo.innerText = "Kiosco Mudéjar";
                 
-                // Evaluar si es regreso o primera visita a este punto
                 if (localStorage.getItem('visito_kiosco')) {
                     elementoTexto.innerHTML = "<strong>Anfitrión:</strong> ¡Qué gusto verte de nuevo aquí en el kiosco! ¿Sabías que la fuente que está justo debajo almacena agua termal pura de nuestros manantiales? Ideal para otra fotografía.";
                 } else {
                     elementoTexto.innerHTML = "<strong>Anfitrión:</strong> Te doy la más cordial bienvenida al corazón de nuestro Pueblo Mágico. Frente a ti tienes una joya artesanal única en México, construida en madera fina en el siglo XX y sin un solo clavo metálico.";
-                    // Guardar registro de visita en el teléfono
                     localStorage.setItem('visito_kiosco', 'true');
                 }
                 
             } else if (sitioActual === 'capulina') {
                 elementoTitulo.innerText = "Estatua de Capulina";
 
-                // Memoria cruzada: Reconoce si el usuario ya pasó por el Kiosco antes de llegar aquí
                 if (localStorage.getItem('visito_kiosco')) {
-                    elementoTexto.innerHTML = "<strong>Anfitrión:</strong> ¡Hola! Qué excelente ritmo llevas, veo que vienes directo desde el Kiosco Mudéjar. Aquí nos encontramos junto al gran Gaspar Henaine 'Capulina', el rey del humor blanco. Cuando era niño, su lugar favorito para jugar era precisamente la plaza de donde vienes.";
+                    elementoTexto.innerHTML = "<strong>Anfitrión:</strong> ¡Hola! Qué excelente ritmo llevas, veo que vienes directo desde el Kiosco Mudéjar. Aquí nos encontramos junto al gran Gaspar Henaine 'Capulina', el rey del humor blanco. Cuando era niño, su lugar favorito para jugar era la plaza de donde vienes.";
                 } else {
                     elementoTexto.innerHTML = "<strong>Anfitrión:</strong> ¡Bienvenido! Estás ante el monumento en honor al gran Gaspar Henaine 'Capulina', una leyenda del cine nacional nacida con orgullo en Chignahuapan. Tómate un momento para capturar una foto junto a él.";
                 }
                 localStorage.setItem('visito_capulina', 'true');
             }
         });
-
-        // Activa el módulo AR nativo del sistema operativo del celular (Android/iOS)
-        function triggerAR() {
-            visor.activateAR();
-        }
     </script>
 </body>
 </html>
